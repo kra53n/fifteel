@@ -6,6 +6,9 @@
 #define GAME_WIDTH  1280
 #define GAME_HEIGHT 720
 
+#define GAME_RESTART_MESSAGE_TEXT "You are win! Press R to restart"
+#define GAME_RESTART_MESSAGE_SIZE 50
+
 #include "box.h"
 #include "menu.h"
 
@@ -16,6 +19,8 @@ typedef struct Game
 	int           run;
 	Box           box;
 	Menu          menu;
+	Texture       restartMessage;
+	int           lastUpdate;
 } Game;
 
 int GameInit(Game* game);

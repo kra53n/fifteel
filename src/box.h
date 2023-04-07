@@ -20,6 +20,7 @@ typedef struct Box
 } Box;
 
 int BoxInit(Box* self);
+int BoxUninit(Box* self);
 int BoxDraw(Box* self, SDL_Renderer* rer);
 int BoxUpdate(Box* self);
 int BoxIsComplete(Box* self);

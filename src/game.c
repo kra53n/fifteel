@@ -3,6 +3,17 @@
 #include <SDL_ttf.h>
 
 #include "game.h"
+#include "util.h"
+
+int GameInitRestartMessage(Game* self, SDL_Rect box)
+{
+	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, GAME_RESTART_MESSAGE_SIZE);
+	Color c;
+	set_color(c, 255);
+	self->restartMessage = TextGetAsTexture(self->rer, font, GAME_RESTART_MESSAGE_TEXT, c);
+	TTF_CloseFont(font);
+	centerizeRect(&box, &self->restartMessage.rect);
+}
 
 int GameInit(Game* self)
 {
@@ -38,7 +49,18 @@ int GameInit(Game* self)
 	BoxInit(&self->box);
 	NumsInit(&self->box.nums, self->rer, self->box.rows, self->box.cols, self->box.cellColorText, self->box.textSize);
 
+	GameInitRestartMessage(self, winScreen);
+
+	self->lastUpdate = SDL_GetTicks();
+
 	return 0;
+}
+
+int GameRestart(Game* self)
+{
+	BoxUninit(&self->box);
+	BoxInit(&self->box);
+	NumsInit(&self->box.nums, self->rer, self->box.rows, self->box.cols, self->box.cellColorText, self->box.textSize);
 }
 
 int GameUninit(Game* game)
@@ -60,6 +82,9 @@ int GameProcessEvents(Game* self)
 		case SDL_QUIT: GameUninit(self); break;
 		case SDL_MOUSEBUTTONDOWN:
 		{
+
+			if (BoxIsComplete(&self->box)) continue;
+
 			switch (self->menu.status)
 			{
 			case MENU_ACTIVE:   MenuUpdate(&self->menu); break;
@@ -72,6 +97,7 @@ int GameProcessEvents(Game* self)
 			{
 			case SDL_SCANCODE_R:
 			{
+				GameRestart(self);
 			} break;
 			} break;
 		}
@@ -87,11 +113,24 @@ void GameUpdate(Game* game)
 
 void GameDraw(Game* self)
 {
+	int ticks = SDL_GetTicks();
+	if (ticks - self->lastUpdate < 60) return;
+	else self->lastUpdate = ticks;
+
+	SDL_SetRenderDrawColor(self->rer, 0, 0, 0, 255);
+	SDL_RenderClear(self->rer);
+
 	switch (self->menu.status)
 	{
 	case MENU_ACTIVE:   MenuDraw(&self->menu, self->rer); break;
 	case MENU_UNACTIVE: BoxDraw(&self->box, self->rer); break;
 	}
+
+	if (BoxIsComplete(&self->box))
+	{
+		SDL_RenderCopy(self->rer, self->restartMessage.data, 0, &self->restartMessage.rect);
+	}
+
 	SDL_RenderPresent(self->rer);
 }
 
