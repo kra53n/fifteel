@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 
-typedef struct
+typedef struct Color
 {
 	Uint8 r;
 	Uint8 g;

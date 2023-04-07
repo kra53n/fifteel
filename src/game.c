@@ -34,6 +34,7 @@ int GameInit(Game* self)
 	if (!self->rer) return 1;
 
 	BoxInit(&self->box);
+	CellsInit(&self->box.cells, self->rer, self->box.rows, self->box.cols, self->box.cellColorText, self->box.textSize);
 
 	return 0;
 }
@@ -76,7 +77,8 @@ void GameUpdate(Game* game)
 
 void GameDraw(Game* self)
 {
-	BoxDraw(&self->box, self->rer);
+	//BoxDraw(&self->box, self->rer);
+	CellsDraw(self->box.cells, self->rer);
 	SDL_RenderPresent(self->rer);
 }
 

@@ -4,6 +4,25 @@
 #include "cell.h"
 #include "text.h"
 
+int CellsInit(Cell** self, SDL_Renderer* rer, int rows, int cols, Color textColor, int textSize)
+{
+	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, textSize);
+
+	*self = (Cell*)malloc(sizeof(Cell));
+	Cell* tmp = *self;
+	for (int i = 1; i < rows * cols; i++)
+	{
+		char text[4];
+		SDL_itoa(i, text, 10);
+		tmp->texture = TextGetAsTexture(rer, font, text, textColor);
+		if (i + 1 != rows * cols) tmp->nxt = (Cell*)malloc(sizeof(Cell));
+		else tmp->nxt = NULL;
+		tmp = tmp->nxt;
+	}
+
+	TTF_CloseFont(font);
+}
+
 void CellsFree(Cell* self)
 {
 	while (self)
@@ -15,18 +34,14 @@ void CellsFree(Cell* self)
 	self = NULL;
 }
 
-int CellsInit(Cell* self, SDL_Renderer* rer, int row, int col, Color textColor, int textSize)
+void CellsDraw(Cell* self, SDL_Renderer* rer)
 {
-	if (self) CellsFree(self);
-
-	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, textSize);
-
-	//Cell* tmp = self;
-	//for (int i = 1; i < row * col; i++)
-	//{
-	//	tmp = (Cell*)malloc(sizeof(Cell));
-	//	tmp->nxt = (Cell*)malloc(sizeof(Cell));
-	//}
-
-	TTF_CloseFont(font);
+	SDL_SetRenderDrawColor(rer, 255, 255, 255, 255);
+	int x = 0;
+	for (Cell* i = self; i; i = i->nxt)
+	{
+		SDL_Rect r = { x, 0, i->texture.rect.w, i->texture.rect.h };
+		SDL_RenderCopy(rer, i->texture.data, 0, &r);
+		x += 50;
+	}
 }

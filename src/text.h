@@ -4,7 +4,8 @@
 #include <SDL_ttf.h>
 
 #include "color.h"
+#include "texture.h"
 
-#define TEXT_FONTNAME "data/JetBrainsMono.ttf"
+#define TEXT_FONTNAME "data/JetBrainsMono-BoldItalic.ttf"
 
-SDL_Texture* TextGetAsTexture(SDL_Renderer* rer, TTF_Font* font, const char* text, Color color);
+Texture TextGetAsTexture(SDL_Renderer* rer, TTF_Font* font, const char* text, Color color);
