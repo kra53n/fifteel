@@ -5,6 +5,15 @@
 #include "util.h"
 #include "game.h"
 
+int BoxIsComplete(Box* self)
+{
+	for (int i = 0; i < self->rows * self->cols - 1; i++)
+	{
+		if (self->cells[i] != i + 1) return 0;
+	}
+	return 1;
+}
+
 int BoxInitCells(Box* self)
 {
 	self->cells = (int*)malloc(sizeof(int) * self->rows * self->cols);
@@ -18,7 +27,7 @@ int BoxInitCells(Box* self)
 			self->cells[j] = tmp;
 		}
 	// TODO: add correctness checking
-	} while (0);
+	} while (BoxIsComplete(self) || 0);
 }
 
 int BoxInit(Box* self)
@@ -78,7 +87,7 @@ int BoxCellIsMovable(Box* self, int idx)
 		idx == empty + self->rows ||
 		(idx % self->rows == 0 && idx + 1 == empty) ||
 		(idx % self->rows == 1 && idx - 1 == empty) ||
-		(idx % self->rows != 0 && (idx+1) % self->rows != 1 && (idx + 1 == empty || idx - 1 == empty))
+		(idx % self->rows != 0 && (idx+1) % self->rows != 0 && (idx + 1 == empty || idx - 1 == empty))
 	);
 }
 
@@ -138,13 +147,4 @@ int BoxDraw(Box* self, SDL_Renderer* rer)
 	SDL_RenderFillRect(rer, &self->rect);
 	BoxDrawCells(self, rer);
 	SDL_RenderPresent(rer);
-}
-
-int BoxIsComplete(Box* self)
-{
-	for (int i = 0; i < self->rows * self->cols - 1; i++)
-	{
-		if (self->cells[i] != i + 1) return 0;
-	}
-	return 1;
 }
