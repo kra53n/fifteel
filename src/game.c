@@ -33,6 +33,8 @@ int GameInit(Game* self)
 	self->rer = SDL_CreateRenderer(self->win, -1, SDL_RENDERER_ACCELERATED);
 	if (!self->rer) return 1;
 
+	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
+	MenuInit(&self->menu, self->rer, winScreen);
 	BoxInit(&self->box);
 	NumsInit(&self->box.nums, self->rer, self->box.rows, self->box.cols, self->box.cellColorText, self->box.textSize);
 
@@ -48,14 +50,22 @@ int GameUninit(Game* game)
 	exit(0);
 }
 
-int GameProcessEvents(Game* game)
+int GameProcessEvents(Game* self)
 {
 	SDL_Event ev;
 	while (SDL_PollEvent(&ev))
 	{
 		switch (ev.type)
 		{
-		case SDL_QUIT: GameUninit(game); break;
+		case SDL_QUIT: GameUninit(self); break;
+		case SDL_MOUSEBUTTONDOWN:
+		{
+			switch (self->menu.status)
+			{
+			case MENU_ACTIVE:   MenuUpdate(&self->menu); break;
+			case MENU_UNACTIVE: BoxUpdate(&self->box); break;
+			}
+		} break;
 		case SDL_KEYDOWN:
 		{
 			switch (ev.key.keysym.scancode)
@@ -77,7 +87,11 @@ void GameUpdate(Game* game)
 
 void GameDraw(Game* self)
 {
-	BoxDraw(&self->box, self->rer);
+	switch (self->menu.status)
+	{
+	case MENU_ACTIVE:   MenuDraw(&self->menu, self->rer); break;
+	case MENU_UNACTIVE: BoxDraw(&self->box, self->rer); break;
+	}
 	SDL_RenderPresent(self->rer);
 }
 

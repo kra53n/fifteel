@@ -20,7 +20,7 @@ int NumsInit(Texture** self, SDL_Renderer* rer, int rows, int cols, Color textCo
 	TTF_CloseFont(font);
 }
 
-void NumsFree(Texture* self, int rows, int cols)
+void NumsUninit(Texture* self)
 {
 	free(self);
 }
