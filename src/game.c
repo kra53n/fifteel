@@ -79,7 +79,7 @@ int GameProcessEvents(Game* self)
 	{
 		switch (ev.type)
 		{
-		case SDL_QUIT: GameUninit(self); break;
+		case SDL_QUIT: self->menu.status = MENU_ACTIVE; break;
 		case SDL_MOUSEBUTTONDOWN:
 		{
 
@@ -95,10 +95,8 @@ int GameProcessEvents(Game* self)
 		{
 			switch (ev.key.keysym.scancode)
 			{
-			case SDL_SCANCODE_R:
-			{
-				GameRestart(self);
-			} break;
+			case SDL_SCANCODE_R:      GameRestart(self); break;
+			case SDL_SCANCODE_ESCAPE: self->menu.status = MENU_ACTIVE; break;
 			} break;
 		}
 		}
