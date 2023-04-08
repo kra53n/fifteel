@@ -20,7 +20,8 @@ int NumsInit(Texture** self, SDL_Renderer* rer, int rows, int cols, Color textCo
 	TTF_CloseFont(font);
 }
 
-void NumsUninit(Texture* self)
+void NumsUninit(Texture* self, int len)
 {
+	for (int i = 0; i < len; i++) SDL_DestroyTexture(self[i].data);
 	free(self);
 }

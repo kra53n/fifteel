@@ -14,31 +14,74 @@ int BoxIsComplete(Box* self)
 	return 1;
 }
 
+void BoxFillCells(Box* self)
+{
+	for (int i = 1; i < self->rows * self->cols; i++) self->cells[i-1] = i;
+	self->cells[self->rows * self->cols - 1] = 0;
+}
+
+int BoxGetEmptyCellIndex(Box* self)
+{
+	for (int i = 0; i < self->rows * self->cols; i++)
+	{
+		if (self->cells[i] == 0) return i;
+	}
+}
+
+int BoxCellIsMovable(Box* self, int idx)
+{
+	if (
+		idx < 0 ||
+		idx >= self->rows * self->cols ||
+		self->cells[idx] == 0
+	) return 0;
+	int empty = BoxGetEmptyCellIndex(self);
+	return (
+		idx == empty - self->rows ||
+		idx == empty + self->rows ||
+		(idx % self->rows == 0 && idx + 1 == empty) ||
+		((idx+1) % self->rows == 0 && idx - 1 == empty) ||
+		(idx % self->rows != 0 && (idx+1) % self->rows != 0 && (idx + 1 == empty || idx - 1 == empty))
+	);
+}
+
+void BoxMoveCell(Box* self, int srcIdx, int dstIdx)
+{
+	int tmp = self->cells[dstIdx];
+	self->cells[dstIdx] = self->cells[srcIdx];
+	self->cells[srcIdx] = tmp;
+}
+
+void BoxMoveCellRandomly(Box* self)
+{
+	int empty = BoxGetEmptyCellIndex(self);
+	int possibleIdxs[4] = { empty - 1, empty + 1, empty - self->rows, empty + self->rows };
+	int idx;
+	do {
+		idx = rand() % 4;
+	} while(!BoxCellIsMovable(self, possibleIdxs[idx]));
+	BoxMoveCell(self, empty, possibleIdxs[idx]);
+}
+
 int BoxInitCells(Box* self)
 {
 	self->cells = (int*)malloc(sizeof(int) * self->rows * self->cols);
-	for (int i = 0; i < self->rows * self->cols; i++) self->cells[i] = i;
+	BoxFillCells(self);
 	do {
-		for (int i = 0; i < self->rows * self->cols; i++)
-		{
-			int j = rand() % self->rows * self->cols;
-			int tmp = self->cells[i];
-			self->cells[i] = self->cells[j];
-			self->cells[j] = tmp;
-		}
-	// TODO: add correctness checking
-	} while (BoxIsComplete(self) || 0);
+		int n = self->rows * self->cols;
+		for (int i = 0; i < n*n; i++) BoxMoveCellRandomly(self);
+	} while (BoxIsComplete(self));
 }
 
 int BoxInit(Box* self)
 {
 	int padding = 40;
 	int h = GAME_HEIGHT - padding * 2;
-	SDL_Rect r = {(GAME_WIDTH - h) / 2, padding, h, h };
+	SDL_Rect r = { (GAME_WIDTH - h) / 2, padding, h, h };
 	self->rect = r;
 
-	self->rows = 4;
-	self->cols = 4;
+	self->rows = 2;
+	self->cols = 3;
 	self->textSize = 40;
 
 	BoxInitCells(self);
@@ -51,7 +94,7 @@ int BoxInit(Box* self)
 
 int BoxUninit(Box* self)
 {
-	NumsUninit(self->nums);
+	NumsUninit(self->nums, self->rows * self->cols - 1);
 	if (self->cells) free(self->cells);
 }
 
@@ -70,27 +113,6 @@ int BoxGetCellIndex(Box* self, const SDL_Point* mouse)
 	}
 }
 
-int BoxGetEmptyCellIndex(Box* self)
-{
-	for (int i = 0; i < self->rows * self->cols; i++)
-	{
-		if (self->cells[i] == 0) return i;
-	}
-}
-
-int BoxCellIsMovable(Box* self, int idx)
-{
-	if (self->cells[idx] == 0) return 0;
-	int empty = BoxGetEmptyCellIndex(self);
-	return (
-		idx == empty - self->rows ||
-		idx == empty + self->rows ||
-		(idx % self->rows == 0 && idx + 1 == empty) ||
-		(idx % self->rows == 1 && idx - 1 == empty) ||
-		(idx % self->rows != 0 && (idx+1) % self->rows != 0 && (idx + 1 == empty || idx - 1 == empty))
-	);
-}
-
 int BoxUpdate(Box* self)
 {
 	SDL_Rect mouse;
@@ -100,10 +122,7 @@ int BoxUpdate(Box* self)
 	int idx = BoxGetCellIndex(self, &mouse);
 	if (!BoxCellIsMovable(self, idx)) return;
 
-	int empty = BoxGetEmptyCellIndex(self);
-	int tmp = self->cells[idx];
-	self->cells[idx] = self->cells[empty];
-	self->cells[empty] = tmp;
+	BoxMoveCell(self, BoxGetEmptyCellIndex(self), idx);
 }
 
 void BoxDrawCell(Box* self, SDL_Renderer* rer, SDL_Rect r, int idx)
