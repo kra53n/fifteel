@@ -37,8 +37,8 @@ int BoxInit(Box* self)
 	SDL_Rect r = {(GAME_WIDTH - h) / 2, padding, h, h };
 	self->rect = r;
 
-	self->rows = 2;
-	self->cols = 2;
+	self->rows = 4;
+	self->cols = 4;
 	self->textSize = 40;
 
 	BoxInitCells(self);
