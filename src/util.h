@@ -2,4 +2,4 @@
 
 #include <SDL.h>
 
-void centerizeRect(SDL_Rect* r1, SDL_Rect* r2);
+void centerizeRect(SDL_Rect* src, SDL_Rect* dst);

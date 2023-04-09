@@ -80,11 +80,12 @@ int BoxInit(Box* self)
 	SDL_Rect r = { (GAME_WIDTH - h) / 2, padding, h, h };
 	self->rect = r;
 
-	self->rows = 2;
-	self->cols = 3;
+	self->rows = 4;
+	self->cols = 4;
 	self->textSize = 40;
 
 	BoxInitCells(self);
+	self->cellPadding = 5;
 
 	set_color(self->bg, 20);
 	set_color(self->cellColorBg, 50);
@@ -94,8 +95,8 @@ int BoxInit(Box* self)
 
 int BoxUninit(Box* self)
 {
-	NumsUninit(self->nums, self->rows * self->cols - 1);
 	if (self->cells) free(self->cells);
+	self->cells = NULL;
 }
 
 int BoxGetCellIndex(Box* self, const SDL_Point* mouse)
@@ -125,27 +126,24 @@ int BoxUpdate(Box* self)
 	BoxMoveCell(self, BoxGetEmptyCellIndex(self), idx);
 }
 
-void BoxDrawCell(Box* self, SDL_Renderer* rer, SDL_Rect r, int idx)
+void BoxDrawCell(Box* self, SDL_Renderer* rer, Nums* nums, SDL_Rect r, int idx)
 {
 	if (!idx) return;
 
-	// TODO: exclude this tmp variable
-	int pd = 5;
-	r.x += pd;
-	r.y += pd;
-	r.w -= pd * 2;
-	r.h -= pd * 2;
+	r.x += self->cellPadding;
+	r.y += self->cellPadding;
+	r.w -= self->cellPadding * 2;
+	r.h -= self->cellPadding * 2;
 
 	SDL_SetRenderDrawColor(rer, give_color(self->cellColorBg));
 	SDL_RenderFillRect(rer, &r);
 
-	SDL_Rect numRect = self->nums[idx - 1].rect;
-	centerizeRect(&r, &numRect);
 	SDL_SetRenderDrawColor(rer, give_color(self->cellColorText));
-	SDL_RenderCopy(rer, self->nums[idx - 1].data, NULL, &numRect);
+	char num[3]; SDL_itoa(idx, num, 10);
+	NumsDraw(nums, rer, num, r);
 }
 
-void BoxDrawCells(Box* self, SDL_Renderer* rer)
+void BoxDrawCells(Box* self, SDL_Renderer* rer, Nums* nums)
 {
 	SDL_Rect r = { self->rect.x, self->rect.y, self->rect.w / self->rows, self->rect.h / self->cols };
 	for (int i = 0; i < self->rows * self->cols; i++)
@@ -155,15 +153,15 @@ void BoxDrawCells(Box* self, SDL_Renderer* rer)
 			r.x = self->rect.x;
 			r.y += r.h;
 		}
-		BoxDrawCell(self, rer, r, self->cells[i]);
+		BoxDrawCell(self, rer, nums, r, self->cells[i]);
 		r.x += r.w;
 	}
 }
 
-int BoxDraw(Box* self, SDL_Renderer* rer)
+int BoxDraw(Box* self, SDL_Renderer* rer, Nums* nums)
 {
 	SDL_SetRenderDrawColor(rer, give_color(self->bg));
 	SDL_RenderFillRect(rer, &self->rect);
-	BoxDrawCells(self, rer);
+	BoxDrawCells(self, rer, nums);
 	SDL_RenderPresent(rer);
 }

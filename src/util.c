@@ -1,7 +1,7 @@
 #include "util.h"
 
-void centerizeRect(SDL_Rect* r1, SDL_Rect* r2)
+void centerizeRect(SDL_Rect* src, SDL_Rect* dst)
 {
-	r2->x = r1->x + (r1->w - r2->w) / 2;
-	r2->y = r1->y + (r1->h - r2->h) / 2;
+	src->x = dst->x + (dst->w - src->w) / 2;
+	src->y = dst->y + (dst->h - src->h) / 2;
 }

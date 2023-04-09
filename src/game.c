@@ -12,7 +12,7 @@ int GameInitRestartMessage(Game* self, SDL_Rect box)
 	set_color(c, 255);
 	self->restartMessage = TextGetAsTexture(self->rer, font, GAME_RESTART_MESSAGE_TEXT, c);
 	TTF_CloseFont(font);
-	centerizeRect(&box, &self->restartMessage.rect);
+	centerizeRect(&self->restartMessage.rect, &box);
 }
 
 int GameInit(Game* self)
@@ -45,9 +45,9 @@ int GameInit(Game* self)
 	if (!self->rer) return 1;
 
 	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
+	NumsInit(&self->nums, self->rer);
 	MenuInit(&self->menu, self->rer, winScreen);
 	BoxInit(&self->box);
-	NumsInit(&self->box.nums, self->rer, self->box.rows, self->box.cols, self->box.cellColorText, self->box.textSize);
 
 	GameInitRestartMessage(self, winScreen);
 
@@ -60,7 +60,6 @@ int GameRestart(Game* self)
 {
 	BoxUninit(&self->box);
 	BoxInit(&self->box);
-	NumsInit(&self->box.nums, self->rer, self->box.rows, self->box.cols, self->box.cellColorText, self->box.textSize);
 }
 
 int GameUninit(Game* game)
@@ -127,7 +126,7 @@ void GameDraw(Game* self)
 	switch (self->menu.status)
 	{
 	case MENU_ACTIVE:   MenuDraw(&self->menu, self->rer); break;
-	case MENU_UNACTIVE: BoxDraw(&self->box, self->rer); break;
+	case MENU_UNACTIVE: BoxDraw(&self->box, self->rer, &self->nums); break;
 	}
 
 	if (BoxIsComplete(&self->box))
@@ -135,6 +134,7 @@ void GameDraw(Game* self)
 		SDL_RenderCopy(self->rer, self->restartMessage.data, 0, &self->restartMessage.rect);
 	}
 
+	SDL_SetRenderDrawColor(self->rer, 255, 0, 0, 255);
 	SDL_RenderPresent(self->rer);
 }
 

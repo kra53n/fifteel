@@ -5,5 +5,12 @@
 #include "color.h"
 #include "texture.h"
 
-int NumsInit(Texture** self, SDL_Renderer* rer, int rows, int cols, Color textColor, int textSize);
+typedef struct Nums
+{
+	Texture data[10];
+	int size;
+} Nums;
+
+int NumsInit(Nums* self, SDL_Renderer* rer);
+void NumsDraw(Nums* self, SDL_Renderer* rer, const char* text, SDL_Rect box);
 void NumsUninit(Texture* self, int len);

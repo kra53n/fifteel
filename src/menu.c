@@ -12,8 +12,8 @@ int MenuInit(Menu* self, SDL_Renderer* rer, SDL_Rect box)
 
 	self->status = MENU_ACTIVE;
 
-	centerizeRect(&box, &self->play.rect);
-	centerizeRect(&box, &self->quit.rect);
+	centerizeRect(&self->play.rect, &box);
+	centerizeRect(&self->quit.rect, &box);
 	self->play.rect.y -= self->quit.rect.h + 30;
 
 	TTF_CloseFont(font);

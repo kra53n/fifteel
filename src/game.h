@@ -11,6 +11,7 @@
 
 #include "box.h"
 #include "menu.h"
+#include "texture.h"
 
 typedef struct Game
 {
@@ -19,6 +20,7 @@ typedef struct Game
 	int           run;
 	Box           box;
 	Menu          menu;
+	Nums          nums;
 	Texture       restartMessage;
 	int           lastUpdate;
 } Game;
