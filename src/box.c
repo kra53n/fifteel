@@ -73,15 +73,15 @@ int BoxInitCells(Box* self)
 	} while (BoxIsComplete(self));
 }
 
-int BoxInit(Box* self)
+int BoxInit(Box* self, int rows, int cols)
 {
 	int padding = 40;
 	int h = GAME_HEIGHT - padding * 2;
 	SDL_Rect r = { (GAME_WIDTH - h) / 2, padding, h, h };
 	self->rect = r;
 
-	self->rows = 3;
-	self->cols = 3;
+	self->rows = rows;
+	self->cols = cols;
 	self->textSize = 40;
 
 	BoxInitCells(self);

@@ -20,8 +20,13 @@ typedef struct Box
 	int       cellPadding;
 } Box;
 
-int BoxInit(Box* self);
+#define BOX_DEFAULT_ROWS_SIZE 4
+#define BOX_DEFAULT_COLS_SIZE 4
+
+int BoxInit(Box* self, int rows, int cols);
 int BoxUninit(Box* self);
 int BoxDraw(Box* self, SDL_Renderer* rer, Nums* nums);
 int BoxUpdate(Box* self);
 int BoxIsComplete(Box* self);
+int BoxSetRows(Box* self, int rows);
+int BoxSetCols(Box* self, int cols);

@@ -47,7 +47,7 @@ int GameInit(Game* self)
 	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
 	NumsInit(&self->nums, self->rer);
 	MenuInit(&self->menu, self->rer, winScreen);
-	BoxInit(&self->box);
+	BoxInit(&self->box, BOX_DEFAULT_ROWS_SIZE, BOX_DEFAULT_COLS_SIZE);
 
 	GameInitRestartMessage(self, winScreen);
 
@@ -60,7 +60,7 @@ int GameInit(Game* self)
 int GameRestart(Game* self)
 {
 	BoxUninit(&self->box);
-	BoxInit(&self->box);
+	BoxInit(&self->box, BOX_DEFAULT_ROWS_SIZE, BOX_DEFAULT_COLS_SIZE);
 }
 
 int GameUninit(Game* game)
@@ -94,7 +94,8 @@ int GameProcessEvents(Game* self)
 
 			switch (self->menu.status)
 			{
-			case MENU_ACTIVE:   MenuUpdate(&self->menu); break;
+			case MENU_ACTIVE:
+			case MENU_SETTINGS: MenuUpdate(&self->menu); break;
 			case MENU_UNACTIVE: BoxUpdate(&self->box); break;
 			}
 		} break;
@@ -111,10 +112,17 @@ int GameProcessEvents(Game* self)
 	}
 }
 
-void GameUpdate(Game* game)
+void GameUpdate(Game* self)
 {
-	SDL_UpdateWindowSurface(game->win);
-	GameProcessEvents(game);
+	SDL_UpdateWindowSurface(self->win);
+	GameProcessEvents(self);
+
+	if (self->menu.status == MENU_CHANGED_FIELD)
+	{
+		self->menu.status = MENU_UNACTIVE;
+		BoxUninit(&self->box);
+		BoxInit(&self->box, self->menu.field, self->menu.field);
+	}
 }
 
 void GameDraw(Game* self)
@@ -131,6 +139,7 @@ void GameDraw(Game* self)
 
 	switch (self->menu.status)
 	{
+	case MENU_SETTINGS:
 	case MENU_ACTIVE:   MenuDraw(&self->menu, self->rer); break;
 	case MENU_UNACTIVE: BoxDraw(&self->box, self->rer, &self->nums); break;
 	}
