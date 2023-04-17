@@ -5,6 +5,7 @@
 #include "color.h"
 #include "texture.h"
 
+// TODO: replace struct to `Texture data[10]` and size difine
 typedef struct Nums
 {
 	Texture data[10];

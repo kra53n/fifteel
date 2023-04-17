@@ -13,11 +13,18 @@
 #include "menu.h"
 #include "texture.h"
 
+enum GAME_FLAGS
+{
+	GAME_RUN           = 0x1,
+	GAME_WAS_KEY_DOWN  = 0x2,
+	GAME_FIRST_STARTED = 0x4,
+};
+
 typedef struct Game
 {
 	SDL_Window*   win;
 	SDL_Renderer* rer;
-	int           run;
+	int           flags;
 	Box           box;
 	Menu          menu;
 	Nums          nums;

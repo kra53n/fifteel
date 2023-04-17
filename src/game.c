@@ -52,6 +52,7 @@ int GameInit(Game* self)
 	GameInitRestartMessage(self, winScreen);
 
 	self->lastUpdate = SDL_GetTicks();
+	self->flags = GAME_RUN | GAME_FIRST_STARTED;
 
 	return 0;
 }
@@ -87,6 +88,7 @@ int GameProcessEvents(Game* self)
 		case SDL_QUIT: GameQuitFromBox(self); break;
 		case SDL_MOUSEBUTTONDOWN:
 		{
+			self->flags = self->flags | GAME_WAS_KEY_DOWN;
 
 			if (BoxIsComplete(&self->box)) continue;
 
@@ -98,6 +100,7 @@ int GameProcessEvents(Game* self)
 		} break;
 		case SDL_KEYDOWN:
 		{
+			self->flags = self->flags | GAME_WAS_KEY_DOWN;
 			switch (ev.key.keysym.scancode)
 			{
 			case SDL_SCANCODE_R:      GameRestart(self); break;
@@ -116,9 +119,12 @@ void GameUpdate(Game* game)
 
 void GameDraw(Game* self)
 {
+	// TODO: use here fps
 	int ticks = SDL_GetTicks();
 	if (ticks - self->lastUpdate < 60) return;
 	else self->lastUpdate = ticks;
+
+	self->flags = self->flags & ~GAME_FIRST_STARTED;
 
 	SDL_SetRenderDrawColor(self->rer, 0, 0, 0, 255);
 	SDL_RenderClear(self->rer);
@@ -134,17 +140,19 @@ void GameDraw(Game* self)
 		SDL_RenderCopy(self->rer, self->restartMessage.data, 0, &self->restartMessage.rect);
 	}
 
-	SDL_SetRenderDrawColor(self->rer, 255, 0, 0, 255);
 	SDL_RenderPresent(self->rer);
 }
 
-int GameRun(Game* game)
+int GameRun(Game* self)
 {
-	while (game->run)
+	while (self->flags & GAME_RUN)
 	{
-		GameUpdate(game);
-		GameDraw(game);
+		GameUpdate(self);
+		if (self->flags & (GAME_WAS_KEY_DOWN | GAME_FIRST_STARTED))
+		{
+			GameDraw(self);
+		}
 	}
-	GameUninit(game);
+	GameUninit(self);
 	return 0;
 }

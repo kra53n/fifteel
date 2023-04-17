@@ -37,11 +37,11 @@ int BoxCellIsMovable(Box* self, int idx)
 	) return 0;
 	int empty = BoxGetEmptyCellIndex(self);
 	return (
-		idx == empty - self->rows ||
-		idx == empty + self->rows ||
-		(idx % self->rows == 0 && idx + 1 == empty) ||
-		((idx+1) % self->rows == 0 && idx - 1 == empty) ||
-		(idx % self->rows != 0 && (idx+1) % self->rows != 0 && (idx + 1 == empty || idx - 1 == empty))
+		idx == empty - self->cols ||
+		idx == empty + self->cols ||
+		(idx % self->cols == 0 && idx + 1 == empty) ||
+		((idx+1) % self->cols == 0 && idx - 1 == empty) ||
+		(idx % self->cols != 0 && (idx+1) % self->cols != 0 && (idx + 1 == empty || idx - 1 == empty))
 	);
 }
 
@@ -55,7 +55,7 @@ void BoxMoveCell(Box* self, int srcIdx, int dstIdx)
 void BoxMoveCellRandomly(Box* self)
 {
 	int empty = BoxGetEmptyCellIndex(self);
-	int possibleIdxs[4] = { empty - 1, empty + 1, empty - self->rows, empty + self->rows };
+	int possibleIdxs[4] = { empty - 1, empty + 1, empty - self->cols, empty + self->cols };
 	int idx;
 	do {
 		idx = rand() % 4;
@@ -80,8 +80,8 @@ int BoxInit(Box* self)
 	SDL_Rect r = { (GAME_WIDTH - h) / 2, padding, h, h };
 	self->rect = r;
 
-	self->rows = 4;
-	self->cols = 4;
+	self->rows = 3;
+	self->cols = 3;
 	self->textSize = 40;
 
 	BoxInitCells(self);
@@ -101,10 +101,10 @@ int BoxUninit(Box* self)
 
 int BoxGetCellIndex(Box* self, const SDL_Point* mouse)
 {
-	SDL_Rect r = { self->rect.x, self->rect.y, self->rect.w / self->rows, self->rect.h / self->cols };
+	SDL_Rect r = { self->rect.x, self->rect.y, self->rect.w / self->cols, self->rect.h / self->rows };
 	for (int i = 0; i < self->rows * self->cols; i++)
 	{
-		if (i % self->rows == 0 && i != 0)
+		if (i % self->cols == 0 && i != 0)
 		{
 			r.x = self->rect.x;
 			r.y += r.h;
@@ -145,10 +145,10 @@ void BoxDrawCell(Box* self, SDL_Renderer* rer, Nums* nums, SDL_Rect r, int idx)
 
 void BoxDrawCells(Box* self, SDL_Renderer* rer, Nums* nums)
 {
-	SDL_Rect r = { self->rect.x, self->rect.y, self->rect.w / self->rows, self->rect.h / self->cols };
+	SDL_Rect r = { self->rect.x, self->rect.y, self->rect.w / self->cols, self->rect.h / self->rows };
 	for (int i = 0; i < self->rows * self->cols; i++)
 	{
-		if (i % self->rows == 0 && i != 0)
+		if (i % self->cols == 0 && i != 0)
 		{
 			r.x = self->rect.x;
 			r.y += r.h;
