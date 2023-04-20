@@ -41,7 +41,7 @@ int GameInit(Game* self)
 	);
 	if (!self->win) return 1;
 
-	self->rer = SDL_CreateRenderer(self->win, -1, SDL_RENDERER_ACCELERATED);
+	self->rer = SDL_CreateRenderer(self->win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (!self->rer) return 1;
 
 	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
@@ -60,7 +60,7 @@ int GameInit(Game* self)
 int GameRestart(Game* self)
 {
 	BoxUninit(&self->box);
-	BoxInit(&self->box, BOX_DEFAULT_ROWS_SIZE, BOX_DEFAULT_COLS_SIZE);
+	BoxInit(&self->box, self->box.rows, self->box.cols);
 }
 
 int GameUninit(Game* game)
@@ -80,6 +80,7 @@ void GameQuitFromBox(Game* self)
 
 int GameProcessEvents(Game* self)
 {
+	self->flags = self->flags & ~GAME_WAS_KEY_DOWN;
 	SDL_Event ev;
 	while (SDL_PollEvent(&ev))
 	{
@@ -127,11 +128,6 @@ void GameUpdate(Game* self)
 
 void GameDraw(Game* self)
 {
-	// TODO: use here fps
-	int ticks = SDL_GetTicks();
-	if (ticks - self->lastUpdate < 60) return;
-	else self->lastUpdate = ticks;
-
 	self->flags = self->flags & ~GAME_FIRST_STARTED;
 
 	SDL_SetRenderDrawColor(self->rer, 0, 0, 0, 255);
@@ -152,8 +148,24 @@ void GameDraw(Game* self)
 	SDL_RenderPresent(self->rer);
 }
 
+void GameDelayByFps(int maxFps, int fpsStartTicks)
+{
+	static frames = 0;
+	float fps = frames * 1000. / (SDL_GetTicks() - fpsStartTicks);
+#ifdef DEBUG_SHOW_FPS
+	printf("\nfps: %f", fps);
+#endif
+	if (fps - maxFps > 0)
+	{
+		SDL_Delay(frames / (fps - maxFps));
+	}
+	frames++;
+}
+
 int GameRun(Game* self)
 {
+	int fpsStartTicks = SDL_GetTicks();
+
 	while (self->flags & GAME_RUN)
 	{
 		GameUpdate(self);
@@ -161,6 +173,7 @@ int GameRun(Game* self)
 		{
 			GameDraw(self);
 		}
+		GameDelayByFps(60, fpsStartTicks);
 	}
 	GameUninit(self);
 	return 0;

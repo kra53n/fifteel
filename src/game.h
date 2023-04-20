@@ -2,6 +2,8 @@
 
 #include <SDL.h>
 
+//#define DEBUG_SHOW_FPS
+
 #define GAME_TITLE  "fifteel (fifiteen puzzle game)"
 #define GAME_WIDTH  1280
 #define GAME_HEIGHT 720
