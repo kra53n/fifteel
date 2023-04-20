@@ -1,15 +1,14 @@
 #pragma once
 
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 #include "color.h"
 #include "texture.h"
 
-// TODO: replace struct to `Texture data[10]` and size difine
 typedef struct Nums
 {
 	Texture data[10];
-	int size;
 } Nums;
 
 int NumsInit(Nums* self, SDL_Renderer* rer);

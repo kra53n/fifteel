@@ -83,6 +83,7 @@ int BoxInit(Box* self, int rows, int cols)
 	self->rows = rows;
 	self->cols = cols;
 	self->textSize = 40;
+	self->moves = 0;
 
 	BoxInitCells(self);
 	self->cellPadding = 5;
@@ -123,6 +124,7 @@ int BoxUpdate(Box* self)
 	int idx = BoxGetCellIndex(self, &mouse);
 	if (!BoxCellIsMovable(self, idx)) return;
 
+	self->moves++;
 	BoxMoveCell(self, BoxGetEmptyCellIndex(self), idx);
 }
 
@@ -163,5 +165,4 @@ int BoxDraw(Box* self, SDL_Renderer* rer, Nums* nums)
 	SDL_SetRenderDrawColor(rer, give_color(self->bg));
 	SDL_RenderFillRect(rer, &self->rect);
 	BoxDrawCells(self, rer, nums);
-	SDL_RenderPresent(rer);
 }

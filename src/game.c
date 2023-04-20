@@ -5,14 +5,19 @@
 #include "game.h"
 #include "util.h"
 
-int GameInitRestartMessage(Game* self, SDL_Rect box)
+int GameInitTextures(Game* self)
 {
-	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, GAME_RESTART_MESSAGE_SIZE);
-	Color c;
-	set_color(c, 255);
-	self->restartMessage = TextGetAsTexture(self->rer, font, GAME_RESTART_MESSAGE_TEXT, c);
+	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, TEXT_SIZE);
+
+	Color c; set_color(c, 255);
+	self->textures[GAME_TEXTURE_TIMER]           = TextGetAsTexture(self->rer, font, "Timer: ", c);
+	self->textures[GAME_TEXTURE_MOVES]           = TextGetAsTexture(self->rer, font, "Moves: ", c);
+	self->textures[GAME_TEXTURE_RESTART_MESSAGE] = TextGetAsTexture(self->rer, font, GAME_RESTART_MESSAGE_TEXT, c);
+
+	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
+	centerizeRect(&self->textures[GAME_TEXTURE_RESTART_MESSAGE].rect, &winScreen);
+
 	TTF_CloseFont(font);
-	centerizeRect(&self->restartMessage.rect, &box);
 }
 
 int GameInit(Game* self)
@@ -45,11 +50,11 @@ int GameInit(Game* self)
 	if (!self->rer) return 1;
 
 	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
+	GameInitTextures(self);
 	NumsInit(&self->nums, self->rer);
 	MenuInit(&self->menu, self->rer, winScreen);
 	BoxInit(&self->box, BOX_DEFAULT_ROWS_SIZE, BOX_DEFAULT_COLS_SIZE);
-
-	GameInitRestartMessage(self, winScreen);
+	TimerInit(&self->timer);
 
 	self->lastUpdate = SDL_GetTicks();
 	self->flags = GAME_RUN | GAME_FIRST_STARTED;
@@ -61,6 +66,7 @@ int GameRestart(Game* self)
 {
 	BoxUninit(&self->box);
 	BoxInit(&self->box, self->box.rows, self->box.cols);
+	TimerRestart(&self->timer);
 }
 
 int GameUninit(Game* game)
@@ -117,6 +123,7 @@ void GameUpdate(Game* self)
 {
 	SDL_UpdateWindowSurface(self->win);
 	GameProcessEvents(self);
+	TimerUpdate(&self->timer);
 
 	if (self->menu.status == MENU_CHANGED_FIELD)
 	{
@@ -124,6 +131,25 @@ void GameUpdate(Game* self)
 		BoxUninit(&self->box);
 		BoxInit(&self->box, self->menu.field, self->menu.field);
 	}
+}
+
+void GameDrawMoves(Game* self)
+{
+	SDL_Rect r = {
+		self->timer.coords.x,
+		self->timer.coords.y * 2 + TEXT_SIZE,
+		self->textures[GAME_TEXTURE_MOVES].rect.w,
+		self->textures[GAME_TEXTURE_MOVES].rect.h,
+	};
+	SDL_RenderCopy(self->rer, self->textures[GAME_TEXTURE_MOVES].data, 0, &r);
+	int decades = 0;
+	for (int i = self->box.moves / 60; i > 0; i /= 10, decades++);
+	int w = self->nums.data[0].rect.w * (decades + 1);
+	r.x += r.w;
+	r.w = w;
+	char text[5];
+	SDL_itoa(self->box.moves, text, 10);
+	NumsDraw(&self->nums, self->rer, text, r);
 }
 
 void GameDraw(Game* self)
@@ -136,13 +162,25 @@ void GameDraw(Game* self)
 	switch (self->menu.status)
 	{
 	case MENU_SETTINGS:
-	case MENU_ACTIVE:   MenuDraw(&self->menu, self->rer); break;
-	case MENU_UNACTIVE: BoxDraw(&self->box, self->rer, &self->nums); break;
+	case MENU_ACTIVE: {
+		MenuDraw(&self->menu, self->rer);
+		TimerRestart(&self->timer);
+	} break;
+	case MENU_UNACTIVE: {
+		BoxDraw(&self->box, self->rer, &self->nums);
+		TimerDraw(&self->timer, self->rer, &self->textures[GAME_TEXTURE_TIMER], &self->nums);
+		GameDrawMoves(self);
+	} break;
 	}
 
 	if (BoxIsComplete(&self->box))
 	{
-		SDL_RenderCopy(self->rer, self->restartMessage.data, 0, &self->restartMessage.rect);
+		SDL_RenderCopy(
+			self->rer,
+			self->textures[GAME_TEXTURE_RESTART_MESSAGE].data,
+			0,
+			&self->textures[GAME_TEXTURE_RESTART_MESSAGE].rect
+		);
 	}
 
 	SDL_RenderPresent(self->rer);
@@ -169,10 +207,7 @@ int GameRun(Game* self)
 	while (self->flags & GAME_RUN)
 	{
 		GameUpdate(self);
-		if (self->flags & (GAME_WAS_KEY_DOWN | GAME_FIRST_STARTED))
-		{
-			GameDraw(self);
-		}
+		GameDraw(self);
 		GameDelayByFps(60, fpsStartTicks);
 	}
 	GameUninit(self);

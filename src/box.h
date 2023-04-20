@@ -11,6 +11,7 @@ typedef struct Box
 	int       rows;
 	int       cols;
 	int       textSize;
+	int       moves;
 	Color     bg;
 	Color     cellColorBg;
 	Color     cellColorFg;
@@ -28,5 +29,3 @@ int BoxUninit(Box* self);
 int BoxDraw(Box* self, SDL_Renderer* rer, Nums* nums);
 int BoxUpdate(Box* self);
 int BoxIsComplete(Box* self);
-int BoxSetRows(Box* self, int rows);
-int BoxSetCols(Box* self, int cols);

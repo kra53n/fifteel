@@ -7,8 +7,7 @@
 
 int NumsInit(Nums* self, SDL_Renderer* rer)
 {
-	self->size = 40;
-	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, self->size);
+	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, TEXT_SIZE);
 	Color c; set_color(c, 255);
 	for (int i = 0; i < 10; i++)
 	{

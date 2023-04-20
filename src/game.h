@@ -4,6 +4,11 @@
 
 //#define DEBUG_SHOW_FPS
 
+#include "box.h"
+#include "menu.h"
+#include "timer.h"
+#include "texture.h"
+
 #define GAME_TITLE  "fifteel (fifiteen puzzle game)"
 #define GAME_WIDTH  1280
 #define GAME_HEIGHT 720
@@ -11,9 +16,14 @@
 #define GAME_RESTART_MESSAGE_TEXT "You are win! Press R to restart"
 #define GAME_RESTART_MESSAGE_SIZE 50
 
-#include "box.h"
-#include "menu.h"
-#include "texture.h"
+enum GAME_TEXTURES
+{
+	GAME_TEXTURE_TIMER,
+	GAME_TEXTURE_MOVES,
+	GAME_TEXTURE_RESTART_MESSAGE,
+};
+
+#define GAME_TEXTURES_NUM 3
 
 enum GAME_FLAGS
 {
@@ -30,7 +40,8 @@ typedef struct Game
 	Box           box;
 	Menu          menu;
 	Nums          nums;
-	Texture       restartMessage;
+	Timer         timer;
+	Texture       textures[GAME_TEXTURES_NUM];
 	int           lastUpdate;
 } Game;
 
