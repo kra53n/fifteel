@@ -2,8 +2,6 @@
 
 #include <SDL.h>
 
-//#define DEBUG_SHOW_FPS
-
 #include "box.h"
 #include "menu.h"
 #include "timer.h"
@@ -18,12 +16,14 @@
 
 enum GAME_TEXTURES
 {
-	GAME_TEXTURE_TIMER,
+	GAME_TEXTURE_TIME,
 	GAME_TEXTURE_MOVES,
+	GAME_TEXTURE_BEST_TIME,
+	GAME_TEXTURE_BEST_MOVES,
 	GAME_TEXTURE_RESTART_MESSAGE,
 };
 
-#define GAME_TEXTURES_NUM 3
+#define GAME_TEXTURES_NUM 5
 
 enum GAME_FLAGS
 {
@@ -40,7 +40,6 @@ typedef struct Game
 	Box           box;
 	Menu          menu;
 	Nums          nums;
-	Timer         timer;
 	Texture       textures[GAME_TEXTURES_NUM];
 	int           lastUpdate;
 } Game;

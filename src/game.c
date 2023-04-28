@@ -10,8 +10,10 @@ int GameInitTextures(Game* self)
 	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, TEXT_SIZE);
 
 	Color c; set_color(c, 255);
-	self->textures[GAME_TEXTURE_TIMER]           = TextGetAsTexture(self->rer, font, "Timer: ", c);
+	self->textures[GAME_TEXTURE_TIME]            = TextGetAsTexture(self->rer, font, "Timer: ", c);
 	self->textures[GAME_TEXTURE_MOVES]           = TextGetAsTexture(self->rer, font, "Moves: ", c);
+	self->textures[GAME_TEXTURE_BEST_TIME]       = TextGetAsTexture(self->rer, font, "B Time: ", c);
+	self->textures[GAME_TEXTURE_BEST_MOVES]      = TextGetAsTexture(self->rer, font, "B Moves: ", c);
 	self->textures[GAME_TEXTURE_RESTART_MESSAGE] = TextGetAsTexture(self->rer, font, GAME_RESTART_MESSAGE_TEXT, c);
 
 	SDL_Rect winScreen = { 0, 0, GAME_WIDTH, GAME_HEIGHT };
@@ -54,7 +56,6 @@ int GameInit(Game* self)
 	NumsInit(&self->nums, self->rer);
 	MenuInit(&self->menu, self->rer, winScreen);
 	BoxInit(&self->box, BOX_DEFAULT_ROWS_SIZE, BOX_DEFAULT_COLS_SIZE);
-	TimerInit(&self->timer);
 
 	self->lastUpdate = SDL_GetTicks();
 	self->flags = GAME_RUN | GAME_FIRST_STARTED;
@@ -66,7 +67,6 @@ int GameRestart(Game* self)
 {
 	BoxUninit(&self->box);
 	BoxInit(&self->box, self->box.rows, self->box.cols);
-	TimerRestart(&self->timer);
 }
 
 int GameUninit(Game* game)
@@ -123,7 +123,9 @@ void GameUpdate(Game* self)
 {
 	SDL_UpdateWindowSurface(self->win);
 	GameProcessEvents(self);
-	TimerUpdate(&self->timer);
+
+	if (!BoxIsComplete(&self->box))
+		TimerUpdate(&self->box.timer);
 
 	if (self->menu.status == MENU_CHANGED_FIELD)
 	{
@@ -131,25 +133,6 @@ void GameUpdate(Game* self)
 		BoxUninit(&self->box);
 		BoxInit(&self->box, self->menu.field, self->menu.field);
 	}
-}
-
-void GameDrawMoves(Game* self)
-{
-	SDL_Rect r = {
-		self->timer.coords.x,
-		self->timer.coords.y * 2 + TEXT_SIZE,
-		self->textures[GAME_TEXTURE_MOVES].rect.w,
-		self->textures[GAME_TEXTURE_MOVES].rect.h,
-	};
-	SDL_RenderCopy(self->rer, self->textures[GAME_TEXTURE_MOVES].data, 0, &r);
-	int decades = 0;
-	for (int i = self->box.moves / 60; i > 0; i /= 10, decades++);
-	int w = self->nums.data[0].rect.w * (decades + 1);
-	r.x += r.w;
-	r.w = w;
-	char text[5];
-	SDL_itoa(self->box.moves, text, 10);
-	NumsDraw(&self->nums, self->rer, text, r);
 }
 
 void GameDraw(Game* self)
@@ -164,12 +147,17 @@ void GameDraw(Game* self)
 	case MENU_SETTINGS:
 	case MENU_ACTIVE: {
 		MenuDraw(&self->menu, self->rer);
-		TimerRestart(&self->timer);
 	} break;
 	case MENU_UNACTIVE: {
-		BoxDraw(&self->box, self->rer, &self->nums);
-		TimerDraw(&self->timer, self->rer, &self->textures[GAME_TEXTURE_TIMER], &self->nums);
-		GameDrawMoves(self);
+		BoxDraw(
+			&self->box,
+			self->rer,
+			&self->textures[GAME_TEXTURE_TIME],
+			&self->textures[GAME_TEXTURE_MOVES],
+			&self->textures[GAME_TEXTURE_BEST_TIME],
+			&self->textures[GAME_TEXTURE_BEST_MOVES],
+			&self->nums
+		);
 	} break;
 	}
 
@@ -186,29 +174,12 @@ void GameDraw(Game* self)
 	SDL_RenderPresent(self->rer);
 }
 
-void GameDelayByFps(int maxFps, int fpsStartTicks)
-{
-	static frames = 0;
-	float fps = frames * 1000. / (SDL_GetTicks() - fpsStartTicks);
-#ifdef DEBUG_SHOW_FPS
-	printf("\nfps: %f", fps);
-#endif
-	if (fps - maxFps > 0)
-	{
-		SDL_Delay(frames / (fps - maxFps));
-	}
-	frames++;
-}
-
 int GameRun(Game* self)
 {
-	int fpsStartTicks = SDL_GetTicks();
-
 	while (self->flags & GAME_RUN)
 	{
 		GameUpdate(self);
 		GameDraw(self);
-		GameDelayByFps(60, fpsStartTicks);
 	}
 	GameUninit(self);
 	return 0;

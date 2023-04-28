@@ -84,6 +84,10 @@ int BoxInit(Box* self, int rows, int cols)
 	self->cols = cols;
 	self->textSize = 40;
 	self->moves = 0;
+	// TODO: read values from file
+	TimerInit(&self->timer);
+	self->bestTime = 0;
+	self->bestMoves = 0;
 
 	BoxInitCells(self);
 	self->cellPadding = 5;
@@ -119,13 +123,32 @@ int BoxUpdate(Box* self)
 {
 	SDL_Rect mouse;
 	SDL_GetMouseState(&mouse.x, &mouse.y);
-	if (!SDL_PointInRect(&mouse, &self->rect)) return;
-
 	int idx = BoxGetCellIndex(self, &mouse);
-	if (!BoxCellIsMovable(self, idx)) return;
 
-	self->moves++;
-	BoxMoveCell(self, BoxGetEmptyCellIndex(self), idx);
+	if (SDL_PointInRect(&mouse, &self->rect) && BoxCellIsMovable(self, idx))
+	{
+		self->moves++;
+		BoxMoveCell(self, BoxGetEmptyCellIndex(self), idx);
+	}
+}
+
+void BoxDrawMoves(Box* self, SDL_Renderer* rer, Texture* movesText,  Nums* nums)
+{
+	SDL_Rect r = {
+		self->timer.coords.x,
+		self->timer.coords.y * 2 + TEXT_SIZE,
+		movesText->rect.w,
+		movesText->rect.h,
+	};
+	SDL_RenderCopy(rer, movesText->data, 0, &r);
+	int decades = 0;
+	for (int i = self->moves / 60; i > 0; i /= 10, decades++);
+	int w = nums->data[0].rect.w * (decades + 1);
+	r.x += r.w;
+	r.w = w;
+	char text[5];
+	SDL_itoa(self->moves, text, 10);
+	NumsDraw(nums, rer, text, r);
 }
 
 void BoxDrawCell(Box* self, SDL_Renderer* rer, Nums* nums, SDL_Rect r, int idx)
@@ -160,9 +183,18 @@ void BoxDrawCells(Box* self, SDL_Renderer* rer, Nums* nums)
 	}
 }
 
-int BoxDraw(Box* self, SDL_Renderer* rer, Nums* nums)
+int BoxDraw(
+	Box* self,
+	SDL_Renderer* rer,
+	Texture* timeTexture,
+	Texture* movesTexture,
+	Texture* bsetTimeTexture,
+	Texture* bestMovesTexture,
+	Nums* nums)
 {
 	SDL_SetRenderDrawColor(rer, give_color(self->bg));
+	BoxDrawMoves(self, rer, movesTexture, nums);
+	TimerDraw(&self->timer, rer, timeTexture, nums);
 	SDL_RenderFillRect(rer, &self->rect);
 	BoxDrawCells(self, rer, nums);
 }

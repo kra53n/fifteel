@@ -4,19 +4,29 @@
 
 #include "nums.h"
 #include "color.h"
+#include "timer.h"
 
 typedef struct Box
 {
 	SDL_Rect  rect;
+
 	int       rows;
 	int       cols;
 	int       textSize;
 	int       moves;
+	int       bestTime;
+	int       bestMoves;
+
+	Timer     timer;
+
 	Color     bg;
 	Color     cellColorBg;
 	Color     cellColorFg;
 	Color     cellColorText;
+
+	// TODO: delete it
 	Texture*  nums;
+
 	int*      cells;
 	int       cellPadding;
 } Box;
@@ -26,6 +36,14 @@ typedef struct Box
 
 int BoxInit(Box* self, int rows, int cols);
 int BoxUninit(Box* self);
-int BoxDraw(Box* self, SDL_Renderer* rer, Nums* nums);
+int BoxDraw(
+	Box* self,
+	SDL_Renderer* rer,
+	Texture* timeTexture,
+	Texture* movesTexture,
+	Texture* bestTimeTexture,
+	Texture* bestMovesTexture,
+	Nums* nums
+);
 int BoxUpdate(Box* self);
 int BoxIsComplete(Box* self);
