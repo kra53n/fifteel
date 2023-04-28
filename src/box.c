@@ -1,9 +1,11 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 
 #include "box.h"
 #include "util.h"
 #include "game.h"
+#include "records.h"
 
 int BoxIsComplete(Box* self)
 {
@@ -73,6 +75,17 @@ int BoxInitCells(Box* self)
 	} while (BoxIsComplete(self));
 }
 
+int BoxGetRecords(Box* self)
+{
+	Records recs;
+	RecordsInit(&recs);
+	RecordsRead(&recs, RECORDS_FILENAME);
+	Record rec = RecordsGet(&recs, self->rows, self->cols);
+	self->bestMoves = rec.moves;
+	self->bestTime = rec.secs;
+	RecordsUninit(&recs);
+}
+
 int BoxInit(Box* self, int rows, int cols)
 {
 	int padding = 40;
@@ -84,10 +97,8 @@ int BoxInit(Box* self, int rows, int cols)
 	self->cols = cols;
 	self->textSize = 40;
 	self->moves = 0;
-	// TODO: read values from file
 	TimerInit(&self->timer);
-	self->bestTime = 0;
-	self->bestMoves = 0;
+	BoxGetRecords(self);
 
 	BoxInitCells(self);
 	self->cellPadding = 5;
