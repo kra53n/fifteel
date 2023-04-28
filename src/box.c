@@ -132,23 +132,46 @@ int BoxUpdate(Box* self)
 	}
 }
 
-void BoxDrawMoves(Box* self, SDL_Renderer* rer, Texture* movesText,  Nums* nums)
+void BoxDrawMoves(
+	Box* self,
+	SDL_Renderer* rer,
+	SDL_Point p,
+	Texture* textTexture,
+	Nums* nums,
+	int moves
+)
 {
-	SDL_Rect r = {
-		self->timer.coords.x,
-		self->timer.coords.y * 2 + TEXT_SIZE,
-		movesText->rect.w,
-		movesText->rect.h,
-	};
-	SDL_RenderCopy(rer, movesText->data, 0, &r);
+	SDL_Rect r = { p.x, p.y, textTexture->rect.w, textTexture->rect.h };
+	SDL_RenderCopy(rer, textTexture->data, 0, &r);
 	int decades = 0;
-	for (int i = self->moves / 60; i > 0; i /= 10, decades++);
+	for (int i = moves / 60; i > 0; i /= 10, decades++);
 	int w = nums->data[0].rect.w * (decades + 1);
 	r.x += r.w;
 	r.w = w;
 	char text[5];
-	SDL_itoa(self->moves, text, 10);
+	SDL_itoa(moves, text, 10);
 	NumsDraw(nums, rer, text, r);
+}
+
+void BoxDrawTime(
+	Box* self,
+	SDL_Renderer* rer,
+	Timer* timer,
+	SDL_Point p,
+	int secs,
+	Texture* textTexture,
+	Nums* nums
+)
+{
+	SDL_Point tmpPoint = timer->coords;
+	timer->coords = p;
+	int tmpSecs = timer->secs;
+	timer->secs = secs;
+
+	TimerDraw(timer, rer, textTexture, nums);
+
+	timer->coords = tmpPoint;
+	timer->secs = tmpSecs;
 }
 
 void BoxDrawCell(Box* self, SDL_Renderer* rer, Nums* nums, SDL_Rect r, int idx)
@@ -188,13 +211,21 @@ int BoxDraw(
 	SDL_Renderer* rer,
 	Texture* timeTexture,
 	Texture* movesTexture,
-	Texture* bsetTimeTexture,
+	Texture* bestTimeTexture,
 	Texture* bestMovesTexture,
-	Nums* nums)
+	Nums* nums
+)
 {
+	SDL_Point p;
 	SDL_SetRenderDrawColor(rer, give_color(self->bg));
-	BoxDrawMoves(self, rer, movesTexture, nums);
 	TimerDraw(&self->timer, rer, timeTexture, nums);
+	p.x = self->timer.coords.x;
+	p.y = self->timer.coords.y * 2 + TEXT_SIZE;
+	BoxDrawMoves(self, rer, p, movesTexture, nums, self->moves);
+	p.y += movesTexture->rect.h;
+	BoxDrawTime(self, rer, &self->timer, p, self->bestTime, bestTimeTexture, nums);
+	p.y += movesTexture->rect.h;
+	BoxDrawMoves(self, rer, p, bestMovesTexture, nums, self->bestMoves);
 	SDL_RenderFillRect(rer, &self->rect);
 	BoxDrawCells(self, rer, nums);
 }

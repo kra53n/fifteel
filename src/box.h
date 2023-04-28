@@ -24,9 +24,6 @@ typedef struct Box
 	Color     cellColorFg;
 	Color     cellColorText;
 
-	// TODO: delete it
-	Texture*  nums;
-
 	int*      cells;
 	int       cellPadding;
 } Box;

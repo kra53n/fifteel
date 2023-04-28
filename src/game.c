@@ -10,7 +10,7 @@ int GameInitTextures(Game* self)
 	TTF_Font* font = TTF_OpenFont(TEXT_FONTNAME, TEXT_SIZE);
 
 	Color c; set_color(c, 255);
-	self->textures[GAME_TEXTURE_TIME]            = TextGetAsTexture(self->rer, font, "Timer: ", c);
+	self->textures[GAME_TEXTURE_TIME]            = TextGetAsTexture(self->rer, font, "Time: ", c);
 	self->textures[GAME_TEXTURE_MOVES]           = TextGetAsTexture(self->rer, font, "Moves: ", c);
 	self->textures[GAME_TEXTURE_BEST_TIME]       = TextGetAsTexture(self->rer, font, "B Time: ", c);
 	self->textures[GAME_TEXTURE_BEST_MOVES]      = TextGetAsTexture(self->rer, font, "B Moves: ", c);
